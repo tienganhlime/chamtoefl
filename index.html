@@ -255,7 +255,7 @@
 <script>
 // *** CẤU HÌNH CỐ ĐỊNH - NHẬP TRỰC TIẾP VÀO ĐÂY ***
 const FIXED_CONFIG = {
-    apiKey: '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',  // ← DÁN API KEY VÀO ĐÂY
+    apiKey: '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',  // ← DÁN API KEY VÀO ĐÂY
     sheetsUrl: 'https://script.google.com/macros/s/AKfycbyVJx8lwWGF4612xewVaIZZD8elx68iQmuwLIWQUelFyRMHfzvqoa5sS39PRbk-kfT5Pw/exec'  // ← DÁN GOOGLE SHEETS URL VÀO ĐÂY
 };
 
@@ -379,7 +379,12 @@ function startCapture() {
 async function startCamera() {
     try {
         stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment', width: 1920, height: 1080 } 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 4096 },
+                height: { ideal: 2160 },
+                aspectRatio: 16/9
+            } 
         });
         document.getElementById('video').srcObject = stream;
     } catch (error) {
@@ -404,7 +409,7 @@ function capturePhoto() {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    capturedImageData = canvas.toDataURL('image/jpeg', 0.95);
+    capturedImageData = canvas.toDataURL('image/jpeg', 1.0);
     
     stopCamera();
     
