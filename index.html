@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Chấm Điểm TOEFL Primary - LIME Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 50%, #A5D6A7 100%);
+            min-height: 100vh;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #16a34a;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .camera-container {
+            position: relative;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        #video {
+            width: 100%;
+            border-radius: 12px;
+            transform: scaleX(-1);
+        }
+        #canvas {
+            display: none;
+        }
+        .preview-image {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Màn hình Setup API -->
+<div id="setupScreen" class="min-h-screen p-4 flex items-center justify-center fade-in">
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8">
+        <div class="text-center mb-8">
+            <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                 alt="LIME Logo" 
+                 class="w-32 h-32 mx-auto mb-4 object-contain">
+            <h1 class="text-4xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+            <p class="text-green-600 text-lg mb-1">Hệ Thống Chấm Điểm TOEFL</p>
+            <p class="text-green-600">Hotline: 0976222792</p>
+            <div class="mt-4 h-1 w-32 bg-green-500 mx-auto rounded"></div>
+        </div>
+
+        <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-6">
+            <div class="flex items-start gap-2">
+                <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-yellow-800 text-sm">
+                    <p class="font-bold mb-1">⚠️ Cần thiết lập API Key lần đầu:</p>
+                    <p>Hệ thống sử dụng Claude AI để đọc phiếu trả lời. Bạn cần có API key từ Anthropic.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-green-800 font-semibold mb-2">
+                    Anthropic API Key *
+                    <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-blue-600 text-sm ml-2">(Lấy API key tại đây)</a>
+                </label>
+                <input type="password" id="apiKeyInput" 
+                    class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none font-mono text-sm"
+                    placeholder="sk-ant-api03-...">
+            </div>
+
+            <div>
+                <label class="block text-green-800 font-semibold mb-2">Google Sheets URL *</label>
+                <input type="text" id="sheetsUrlInput" 
+                    class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
+                    placeholder="https://script.google.com/macros/s/...">
+            </div>
+        </div>
+
+        <button onclick="saveConfig()" 
+            class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+            Lưu cấu hình và Bắt đầu
+        </button>
+
+        <div class="mt-6 p-4 bg-green-50 rounded-lg">
+            <p class="text-sm text-green-700">
+                <strong>💡 Lưu ý:</strong> API key sẽ được lưu trên trình duyệt của bạn (localStorage). 
+                Không chia sẻ API key với người khác.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Màn hình Nhập thông tin -->
+<div id="infoScreen" class="hidden min-h-screen p-4 fade-in">
+    <div class="max-w-2xl mx-auto mt-8">
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <div class="text-center mb-8">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" 
+                     class="w-32 h-32 mx-auto mb-4 object-contain">
+                <h1 class="text-4xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+                <p class="text-green-600 text-lg">Hotline: 0976222792</p>
+                <div class="mt-4 h-1 w-32 bg-green-500 mx-auto rounded"></div>
+            </div>
+            
+            <div class="bg-green-50 rounded-xl p-6 mb-6">
+                <h2 class="text-2xl font-bold text-green-800 mb-4">TOEFL PRIMARY STEP 2 - TEST 1</h2>
+                <div class="space-y-2 text-green-700">
+                    <p>📝 Chấm Bài TOEFL Primary</p>
+                    <p>📸 Chụp phiếu trả lời tự động</p>
+                    <p>✅ Phân tích chi tiết năng lực học sinh</p>
+                    <p>📊 Reading & Listening</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-green-800 font-semibold mb-2">Họ và tên học sinh *</label>
+                    <input type="text" id="studentName" 
+                        class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
+                        placeholder="Nhập họ tên">
+                </div>
+                
+                <div>
+                    <label class="block text-green-800 font-semibold mb-2">Lớp *</label>
+                    <input type="text" id="studentClass" 
+                        class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
+                        placeholder="Nhập lớp">
+                </div>
+                
+                <div>
+                    <label class="block text-green-800 font-semibold mb-2">Số điện thoại phụ huynh *</label>
+                    <input type="tel" id="parentPhone" 
+                        class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
+                        placeholder="Nhập số điện thoại">
+                </div>
+            </div>
+
+            <button onclick="startCapture()" 
+                class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                📸 Chụp Phiếu Trả Lời
+            </button>
+
+            <button onclick="showSetupScreen()" 
+                class="w-full mt-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                ⚙️ Cài đặt API
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Màn hình Camera -->
+<div id="cameraScreen" class="hidden min-h-screen p-4 fade-in">
+    <div class="max-w-4xl mx-auto mt-8">
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <div class="text-center mb-6">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" 
+                     class="w-20 h-20 mx-auto mb-2 object-contain">
+                <h2 class="text-2xl font-bold text-green-700">📸 Chụp Phiếu Trả Lời</h2>
+            </div>
+
+            <div class="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 mb-6">
+                <div class="flex items-start gap-2">
+                    <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-blue-800 text-sm">
+                        <p class="font-bold mb-1">💡 Hướng dẫn chụp ảnh tốt:</p>
+                        <p>• Đặt phiếu trên mặt phẳng, ánh sáng đều</p>
+                        <p>• Chụp thẳng góc, không bị nghiêng</p>
+                        <p>• Đảm bảo tất cả các ô đều rõ nét</p>
+                        <p>• Các ô tô phải đậm, rõ ràng</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="camera-container mb-6">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="capturePhoto()" 
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                    📷 Chụp Ảnh
+                </button>
+                <button onclick="backToInfo()" 
+                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-6 rounded-lg transition duration-300">
+                    ← Quay Lại
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Màn hình Preview & Processing -->
+<div id="previewScreen" class="hidden min-h-screen p-4 fade-in">
+    <div class="max-w-4xl mx-auto mt-8">
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <div class="text-center mb-6">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" 
+                     class="w-20 h-20 mx-auto mb-2 object-contain">
+                <h2 class="text-2xl font-bold text-green-700">🔍 Xác Nhận Ảnh</h2>
+            </div>
+
+            <div id="previewContainer" class="mb-6 text-center">
+                <img id="previewImage" class="preview-image mx-auto" alt="Preview">
+            </div>
+
+            <div id="processingStatus" class="hidden mb-6">
+                <div class="bg-green-50 border-2 border-green-300 rounded-xl p-6">
+                    <div class="flex items-center justify-center gap-4 mb-4">
+                        <div class="spinner"></div>
+                        <p class="text-green-700 font-bold text-lg">Đang xử lý...</p>
+                    </div>
+                    <p id="statusText" class="text-center text-green-600"></p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="processAnswerSheet()" id="processBtn"
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                    ✅ Xác Nhận & Chấm Điểm
+                </button>
+                <button onclick="retakePhoto()" id="retakeBtn"
+                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-6 rounded-lg transition duration-300">
+                    🔄 Chụp Lại
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Màn hình Kết quả -->
+<div id="resultScreen" class="hidden min-h-screen p-4 fade-in">
+    <div class="max-w-5xl mx-auto mt-8">
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <div class="text-center mb-8">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" 
+                     class="w-32 h-32 mx-auto mb-4 object-contain">
+                <h1 class="text-3xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+                <p class="text-green-600">Hotline: 0976222792</p>
+                <h2 class="text-2xl font-bold text-green-800 mt-4">📊 Kết Quả Chấm Điểm</h2>
+            </div>
+
+            <div id="resultContent" class="space-y-6">
+                <!-- Results will be inserted here -->
+            </div>
+
+            <button onclick="resetSystem()" 
+                class="w-full mt-8 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                🔄 Chấm Bài Mới
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// *** CẤU HÌNH CỐ ĐỊNH - NHẬP TRỰC TIẾP VÀO ĐÂY ***
+const FIXED_CONFIG = {
+    apiKey: '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',
+    sheetsUrl: 'https://script.google.com/macros/s/AKfycbx1deurQLDoeUsKpn1jkHswE5jwe4QfPyR7XthJBF_6fe_0gQx2HNi6ouUqPPnv5P1UQQ/exec'
+};
+
+// ĐÁP ÁN CHUẨN
+const CORRECT_ANSWERS = {
+    reading: {
+        2: 'C', 3: 'B', 4: 'B', 5: 'A', 6: 'B', 7: 'C',
+        8: 'B', 9: 'C', 10: 'B', 11: 'C', 12: 'B', 13: 'A',
+        14: 'B', 15: 'A', 16: 'C', 17: 'B', 18: 'C',
+        19: 'B', 20: 'B', 21: 'B', 22: 'B', 23: 'B',
+        24: 'C', 25: 'A', 26: 'B', 27: 'B', 28: 'C',
+        29: 'B', 30: 'C', 31: 'B', 32: 'B', 33: 'C',
+        34: 'B', 35: 'B', 36: 'B', 37: 'B'
+    },
+    listening: {
+        1: 'B', 2: 'A', 3: 'B', 4: 'A', 5: 'B', 6: 'B', 7: 'A',
+        8: 'C', 9: 'C', 10: 'B', 11: 'A', 12: 'B', 13: 'B', 14: 'B',
+        15: 'B', 16: 'A', 17: 'A', 18: 'B', 19: 'B', 20: 'A', 21: 'A',
+        22: 'C', 23: 'B', 24: 'B', 25: 'A', 26: 'C', 27: 'A', 28: 'A',
+        29: 'C', 30: 'C', 31: 'B', 32: 'C', 33: 'A', 34: 'C', 35: 'B',
+        36: 'B', 37: 'A', 38: 'B', 39: 'C'
+    }
+};
+
+// PHÂN LOẠI KỸ NĂNG
+const SKILL_CATEGORIES = {
+    reading: {
+        vocabulary: { questions: [2, 3, 4, 5, 6, 7], name: 'Từ vựng', level: 'A2-B1' },
+        mainIdea: { questions: [10, 11, 30, 34, 37], name: 'Ý chính', level: 'A2-B1' },
+        details: { questions: [8, 9, 12, 13, 14, 16, 23, 25, 27, 28, 31, 32], name: 'Chi tiết', level: 'A2' },
+        inference: { questions: [15, 22, 26, 29, 33, 35, 36], name: 'Suy luận', level: 'B1' },
+        sequence: { questions: [19, 20, 21, 24], name: 'Trình tự', level: 'A2' },
+        purpose: { questions: [17, 18], name: 'Mục đích', level: 'A2-B1' }
+    },
+    listening: {
+        basicComprehension: { questions: [1, 2, 3, 4, 5, 6, 7, 23, 27], name: 'Hiểu cơ bản', level: 'A1-A2' },
+        mainIdea: { questions: [22, 30, 33, 36], name: 'Ý chính', level: 'A2-B1' },
+        details: { questions: [8, 9, 10, 11, 12, 14, 24, 25, 28, 31, 32, 37, 38], name: 'Chi tiết', level: 'A2' },
+        inference: { questions: [13, 18, 19, 29, 34, 35, 39], name: 'Suy luận', level: 'B1' },
+        purpose: { questions: [15, 16, 17, 20, 21, 26], name: 'Mục đích', level: 'A2-B1' }
+    }
+};
+
+let config = {
+    apiKey: FIXED_CONFIG.apiKey,
+    sheetsUrl: FIXED_CONFIG.sheetsUrl
+};
+let studentInfo = {};
+let capturedImageData = null;
+let stream = null;
+
+function loadConfig() {
+    if (FIXED_CONFIG.apiKey !== 'sk-ant-api03-PASTE_YOUR_API_KEY_HERE' && 
+        FIXED_CONFIG.sheetsUrl !== 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec') {
+        config = {
+            apiKey: FIXED_CONFIG.apiKey,
+            sheetsUrl: FIXED_CONFIG.sheetsUrl
+        };
+        document.getElementById('setupScreen').classList.add('hidden');
+        document.getElementById('infoScreen').classList.remove('hidden');
+        return;
+    }
+    
+    const saved = localStorage.getItem('toefl_config');
+    if (saved) {
+        config = JSON.parse(saved);
+        if (config.apiKey && config.sheetsUrl) {
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('infoScreen').classList.remove('hidden');
+        }
+    }
+}
+
+function saveConfig() {
+    const apiKey = document.getElementById('apiKeyInput').value.trim();
+    const sheetsUrl = document.getElementById('sheetsUrlInput').value.trim();
+    
+    if (!apiKey || !sheetsUrl) {
+        alert('Vui lòng điền đầy đủ thông tin!');
+        return;
+    }
+    
+    config = { apiKey, sheetsUrl };
+    localStorage.setItem('toefl_config', JSON.stringify(config));
+    
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('infoScreen').classList.remove('hidden');
+}
+
+function showSetupScreen() {
+    document.getElementById('infoScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    
+    document.getElementById('apiKeyInput').value = config.apiKey || '';
+    document.getElementById('sheetsUrlInput').value = config.sheetsUrl || '';
+}
+
+function startCapture() {
+    const name = document.getElementById('studentName').value.trim();
+    const classVal = document.getElementById('studentClass').value.trim();
+    const phone = document.getElementById('parentPhone').value.trim();
+    
+    if (!name || !classVal || !phone) {
+        alert('Vui lòng điền đầy đủ thông tin học sinh!');
+        return;
+    }
+    
+    studentInfo = { name, class: classVal, parentPhone: phone };
+    
+    document.getElementById('infoScreen').classList.add('hidden');
+    document.getElementById('cameraScreen').classList.remove('hidden');
+    
+    startCamera();
+}
+
+async function startCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment', width: 1920, height: 1080 } 
+        });
+        document.getElementById('video').srcObject = stream;
+    } catch (error) {
+        alert('Không thể truy cập camera: ' + error.message);
+    }
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+}
+
+function capturePhoto() {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    ctx.restore();
+    
+    capturedImageData = canvas.toDataURL('image/jpeg', 0.95);
+    
+    stopCamera();
+    
+    document.getElementById('cameraScreen').classList.add('hidden');
+    document.getElementById('previewScreen').classList.remove('hidden');
+    document.getElementById('previewImage').src = capturedImageData;
+}
+
+function backToInfo() {
+    stopCamera();
+    document.getElementById('cameraScreen').classList.add('hidden');
+    document.getElementById('infoScreen').classList.remove('hidden');
+}
+
+function retakePhoto() {
+    document.getElementById('previewScreen').classList.add('hidden');
+    document.getElementById('cameraScreen').classList.remove('hidden');
+    startCamera();
+}
+
+async function processAnswerSheet() {
+    document.getElementById('processBtn').disabled = true;
+    document.getElementById('retakeBtn').disabled = true;
+    document.getElementById('processingStatus').classList.remove('hidden');
+    
+    updateStatus('Đang gửi ảnh đến AI...');
+    
+    try {
+        const base64Data = capturedImageData.split(',')[1];
+        
+        updateStatus('AI đang phân tích phiếu trả lời...');
+        
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': config.apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-3-5-sonnet-20241022',
+                max_tokens: 2048,
+                messages: [{
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'image',
+                            source: {
+                                type: 'base64',
+                                media_type: 'image/jpeg',
+                                data: base64Data
+                            }
+                        },
+                        {
+                            type: 'text',
+                            text: `Đây là phiếu trả lời TOEFL Primary Step 2.
+
+Phiếu có 2 phần:
+- READING: câu 1-39 (cột bên trái, header màu xanh lá)
+- LISTENING: câu 1-41 (cột bên phải, header màu hồng)
+
+Nhiệm vụ: Đọc các ô tròn đã được tô đen/đậm và trả về JSON với format:
+
+{
+  "reading": {
+    "1": "A",
+    "2": "B",
+    ...
+  },
+  "listening": {
+    "1": "C",
+    "2": "A",
+    ...
+  }
+}
+
+CHỈ TRẢ VỀ JSON, KHÔNG GIẢI THÍCH GÌ THÊM. Nếu câu nào không tô hoặc không rõ thì bỏ qua câu đó.`
+                        }
+                    ]
+                }]
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('API request failed: ' + response.status);
+        }
+        
+        const data = await response.json();
+        const aiResponse = data.content[0].text;
+        
+        updateStatus('Đang xử lý kết quả...');
+        
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            throw new Error('Không thể đọc được phiếu trả lời. Vui lòng chụp lại ảnh rõ hơn.');
+        }
+        
+        const studentAnswers = JSON.parse(jsonMatch[0]);
+        
+        const results = calculateScores(studentAnswers);
+        
+        updateStatus('Đang gửi kết quả lên Google Sheets...');
+        
+        await sendToGoogleSheets(results);
+        
+        displayResults(results);
+        
+    } catch (error) {
+        alert('Lỗi: ' + error.message);
+        document.getElementById('processBtn').disabled = false;
+        document.getElementById('retakeBtn').disabled = false;
+        document.getElementById('processingStatus').classList.add('hidden');
+    }
+}
+
+function updateStatus(text) {
+    document.getElementById('statusText').textContent = text;
+}
+
+function calculateScores(studentAnswers) {
+    const results = {
+        student: studentInfo,
+        timestamp: new Date().toLocaleString('vi-VN'),
+        reading: analyzeSection('reading', studentAnswers.reading || {}),
+        listening: analyzeSection('listening', studentAnswers.listening || {})
+    };
+    
+    return results;
+}
+
+function analyzeSection(section, answers) {
+    const correctAnswers = CORRECT_ANSWERS[section];
+    const skills = SKILL_CATEGORIES[section];
+    
+    let correctCount = 0;
+    let totalQuestions = Object.keys(correctAnswers).length;
+    const wrongQuestions = [];
+    
+    for (const [qNum, correctAns] of Object.entries(correctAnswers)) {
+        if (answers[qNum] === correctAns) {
+            correctCount++;
+        } else if (answers[qNum]) {
+            wrongQuestions.push(qNum);
+        }
+    }
+    
+    const totalScore = Math.round((correctCount / totalQuestions) * 100);
+    
+    const skillScores = {};
+    for (const [skillName, skillData] of Object.entries(skills)) {
+        let skillCorrect = 0;
+        skillData.questions.forEach(qNum => {
+            if (answers[qNum] === correctAnswers[qNum]) {
+                skillCorrect++;
+            }
+        });
+        skillScores[skillName] = {
+            correct: skillCorrect,
+            total: skillData.questions.length,
+            percentage: Math.round((skillCorrect / skillData.questions.length) * 100),
+            name: skillData.name,
+            level: skillData.level
+        };
+    }
+    
+    const cefrLevel = estimateCEFR(totalScore, skillScores, section);
+    
+    return {
+        answers,
+        correctCount,
+        totalQuestions,
+        totalScore,
+        wrongQuestions,
+        skillScores,
+        cefrLevel,
+        analysis: generateAnalysis(totalScore, skillScores, cefrLevel, section)
+    };
+}
+
+function estimateCEFR(score, skills, section) {
+    if (section === 'reading') {
+        const vocab = skills.vocabulary.percentage;
+        const inference = skills.inference.percentage;
+        
+        if (score >= 90 && vocab >= 85 && inference >= 85) return 'B1 - Cuối';
+        if (score >= 80 && vocab >= 75) return 'B1 - Giữa';
+        if (score >= 70 && inference >= 60) return 'B1 - Đầu';
+        if (score >= 60) return 'A2 - Cuối';
+        if (score >= 50) return 'A2 - Giữa';
+        if (score >= 40) return 'A2 - Đầu';
+        return 'A1';
+    } else {
+        const basic = skills.basicComprehension.percentage;
+        const inference = skills.inference.percentage;
+        
+        if (score >= 90 && basic >= 85 && inference >= 85) return 'B1 - Cuối';
+        if (score >= 80 && inference >= 70) return 'B1 - Giữa';
+        if (score >= 70 && inference >= 60) return 'B1 - Đầu';
+        if (score >= 60) return 'A2 - Cuối';
+        if (score >= 50) return 'A2 - Giữa';
+        if (score >= 40) return 'A2 - Đầu';
+        return 'A1';
+    }
+}
+
+function generateAnalysis(score, skills, cefr, section) {
+    let analysis = `Điểm: ${score}% (${cefr}). `;
+    
+    const strengths = [];
+    const weaknesses = [];
+    
+    for (const [skillName, skillData] of Object.entries(skills)) {
+        if (skillData.percentage >= 75) {
+            strengths.push(`${skillData.name} (${skillData.percentage}%)`);
+        } else if (skillData.percentage < 60) {
+            weaknesses.push(`${skillData.name} (${skillData.percentage}%)`);
+        }
+    }
+    
+    if (strengths.length > 0) {
+        analysis += `Điểm mạnh: ${strengths.join(', ')}. `;
+    }
+    
+    if (weaknesses.length > 0) {
+        analysis += `Cần cải thiện: ${weaknesses.join(', ')}. `;
+    }
+    
+    return analysis;
+}
+
+async function sendToGoogleSheets(results) {
+    const data = {
+        timestamp: results.timestamp,
+        name: results.student.name,
+        class: results.student.class,
+        parentPhone: results.student.parentPhone,
+        
+        readingScore: results.reading.totalScore,
+        readingCorrect: results.reading.correctCount,
+        readingTotal: results.reading.totalQuestions,
+        readingCEFR: results.reading.cefrLevel,
+        readingWrongQuestions: results.reading.wrongQuestions.join(', ') || 'Không có',
+        readingAnalysis: results.reading.analysis,
+        readingVocabulary: results.reading.skillScores.vocabulary?.percentage || 0,
+        readingMainIdea: results.reading.skillScores.mainIdea?.percentage || 0,
+        readingDetails: results.reading.skillScores.details?.percentage || 0,
+        readingInference: results.reading.skillScores.inference?.percentage || 0,
+        readingSequence: results.reading.skillScores.sequence?.percentage || 0,
+        readingPurpose: results.reading.skillScores.purpose?.percentage || 0,
+        
+        listeningScore: results.listening.totalScore,
+        listeningCorrect: results.listening.correctCount,
+        listeningTotal: results.listening.totalQuestions,
+        listeningCEFR: results.listening.cefrLevel,
+        listeningWrongQuestions: results.listening.wrongQuestions.join(', ') || 'Không có',
+        listeningAnalysis: results.listening.analysis,
+        listeningBasic: results.listening.skillScores.basicComprehension?.percentage || 0,
+        listeningMainIdea: results.listening.skillScores.mainIdea?.percentage || 0,
+        listeningDetails: results.listening.skillScores.details?.percentage || 0,
+        listeningInference: results.listening.skillScores.inference?.percentage || 0,
+        listeningPurpose: results.listening.skillScores.purpose?.percentage || 0,
+        
+        overallScore: Math.round((results.reading.totalScore + results.listening.totalScore) / 2),
+        
+        readingAnswers: JSON.stringify(results.reading.answers),
+        listeningAnswers: JSON.stringify(results.listening.answers)
+    };
+    
+    try {
+        await fetch(config.sheetsUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } catch (error) {
+        console.error('Lỗi khi gửi Google Sheets:', error);
+    }
+}
+
+function displayResults(results) {
+    document.getElementById('previewScreen').classList.add('hidden');
+    document.getElementById('resultScreen').classList.remove('hidden');
+    
+    const html = `
+        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6 border-2 border-green-200">
+            <h2 class="text-2xl font-bold text-green-700 mb-4">📋 Thông Tin Học Sinh</h2>
+            <div class="grid grid-cols-2 gap-4 text-lg">
+                <div><strong>Họ tên:</strong> ${results.student.name}</div>
+                <div><strong>Lớp:</strong> ${results.student.class}</div>
+                <div><strong>SĐT phụ huynh:</strong> ${results.student.parentPhone}</div>
+                <div><strong>Thời gian:</strong> ${results.timestamp}</div>
+            </div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-green-50 rounded-xl p-6 border-2 border-green-300">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                        R
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-green-800">READING</h3>
+                        <p class="text-green-600 text-sm">Kỹ năng đọc</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-4 mb-4">
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-green-600 mb-2">${results.reading.totalScore}%</div>
+                        <div class="text-lg font-semibold text-green-700">${results.reading.cefrLevel}</div>
+                        <div class="text-sm text-gray-600 mt-2">
+                            ${results.reading.correctCount}/${results.reading.totalQuestions} câu đúng
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    ${Object.entries(results.reading.skillScores).map(([key, skill]) => `
+                        <div class="bg-white rounded-lg p-3">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-semibold text-gray-700">${skill.name}</span>
+                                <span class="text-sm font-bold ${skill.percentage >= 75 ? 'text-green-600' : skill.percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}">
+                                    ${skill.percentage}%
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="h-2 rounded-full ${skill.percentage >= 75 ? 'bg-green-500' : skill.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'}" 
+                                     style="width: ${skill.percentage}%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">${skill.correct}/${skill.total} câu • Level ${skill.level}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${results.reading.wrongQuestions.length > 0 ? `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <p class="text-sm font-semibold text-red-700 mb-1">❌ Câu sai:</p>
+                        <p class="text-sm text-red-600">${results.reading.wrongQuestions.join(', ')}</p>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="bg-blue-50 rounded-xl p-6 border-2 border-blue-300">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                        L
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-blue-800">LISTENING</h3>
+                        <p class="text-blue-600 text-sm">Kỹ năng nghe</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-4 mb-4">
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-blue-600 mb-2">${results.listening.totalScore}%</div>
+                        <div class="text-lg font-semibold text-blue-700">${results.listening.cefrLevel}</div>
+                        <div class="text-sm text-gray-600 mt-2">
+                            ${results.listening.correctCount}/${results.listening.totalQuestions} câu đúng
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    ${Object.entries(results.listening.skillScores).map(([key, skill]) => `
+                        <div class="bg-white rounded-lg p-3">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-semibold text-gray-700">${skill.name}</span>
+                                <span class="text-sm font-bold ${skill.percentage >= 75 ? 'text-green-600' : skill.percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}">
+                                    ${skill.percentage}%
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="h-2 rounded-full ${skill.percentage >= 75 ? 'bg-green-500' : skill.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'}" 
+                                     style="width: ${skill.percentage}%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">${skill.correct}/${skill.total} câu • Level ${skill.level}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${results.listening.wrongQuestions.length > 0 ? `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <p class="text-sm font-semibold text-red-700 mb-1">❌ Câu sai:</p>
+                        <p class="text-sm text-red-600">${results.listening.wrongQuestions.join(', ')}</p>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border-2 border-green-300">
+            <h3 class="text-xl font-bold text-green-700 mb-4">📊 Phân Tích Tổng Quan</h3>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-white rounded-lg p-4">
+                    <p class="text-sm text-gray-600 mb-1">Điểm trung bình</p>
+                    <p class="text-3xl font-bold text-green-600">
+                        ${Math.round((results.reading.totalScore + results.listening.totalScore) / 2)}%
+                    </p>
+                </div>
+                <div class="bg-white rounded-lg p-4">
+                    <p class="text-sm text-gray-600 mb-1">CEFR Level dự kiến</p>
+                    <p class="text-2xl font-bold text-green-600">
+                        ${getBestCEFR(results.reading.cefrLevel, results.listening.cefrLevel)}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg p-4 space-y-3">
+                <div>
+                    <p class="font-semibold text-green-700 mb-2">✅ Reading Analysis:</p>
+                    <p class="text-sm text-gray-700">${results.reading.analysis}</p>
+                </div>
+                <div>
+                    <p class="font-semibold text-blue-700 mb-2">✅ Listening Analysis:</p>
+                    <p class="text-sm text-gray-700">${results.listening.analysis}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 mt-6">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <h3 class="font-bold text-yellow-800 mb-2">📞 Liên hệ phụ huynh:</h3>
+                    <p class="text-yellow-700 text-sm">
+                        Kết quả đã được lưu vào hệ thống. Giáo viên sẽ liên hệ phụ huynh qua số 
+                        <strong>${results.student.parentPhone}</strong> để tư vấn chi tiết về kết quả và lộ trình học tập.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('resultContent').innerHTML = html;
+}
+
+function getBestCEFR(reading, listening) {
+    const levels = ['A1', 'A2 - Đầu', 'A2 - Giữa', 'A2 - Cuối', 'B1 - Đầu', 'B1 - Giữa', 'B1 - Cuối'];
+    const r = levels.findIndex(l => reading.includes(l.split(' ')[0]));
+    const l = levels.findIndex(l => listening.includes(l.split(' ')[0]));
+    return levels[Math.floor((r + l) / 2)] || 'A2';
+}
+
+function resetSystem() {
+    document.getElementById('resultScreen').classList.add('hidden');
+    document.getElementById('infoScreen').classList.remove('hidden');
+    
+    document.getElementById('studentName').value = '';
+    document.getElementById('studentClass').value = '';
+    document.getElementById('parentPhone').value = '';
+    
+    capturedImageData = null;
+    studentInfo = {};
+}
+
+loadConfig();
