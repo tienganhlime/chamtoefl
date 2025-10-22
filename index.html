@@ -77,12 +77,12 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-purple-800 font-semibold mb-2">
-                     Google Gemini API Key *
-    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 text-sm ml-2">(Lấy API key miễn phí tại đây)</a>
-</label>
-<input type="password" id="apiKeyInput" 
-    class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-sm"
-    placeholder="AIza...">
+                    🔑 Google Gemini API Key *
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 text-sm ml-2">(Lấy API key miễn phí tại đây)</a>
+                </label>
+                <input type="password" id="apiKeyInput" 
+                    class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-sm"
+                    placeholder="AIza...">
             </div>
 
             <div>
@@ -255,8 +255,8 @@
 <script>
 // *** CẤU HÌNH CỐ ĐỊNH - NHẬP TRỰC TIẾP VÀO ĐÂY ***
 const FIXED_CONFIG = {
-    apiKey: 'AIzaSyBLOjZc6aFU-SmCCU7kBUrZZvPgFSLhe6g',  // ← DÁN API KEY VÀO ĐÂY
-    sheetsUrl: 'https://script.google.com/macros/s/AKfycbyVJx8lwWGF4612xewVaIZZD8elx68iQmuwLIWQUelFyRMHfzvqoa5sS39PRbk-kfT5Pw/exec'  // ← DÁN GOOGLE SHEETS URL VÀO ĐÂY
+    apiKey: 'AIzaSyBLOjZc6aFU-SmCCU7kBUrZZvPgFSLhe6g',
+    sheetsUrl: 'https://script.google.com/macros/s/AKfycbyVJx8lwWGF4612xewVaIZZD8elx68iQmuwLIWQUelFyRMHfzvqoa5sS39PRbk-kfT5Pw/exec'
 };
 
 // ĐÁP ÁN CHUẨN
@@ -307,23 +307,18 @@ let studentInfo = {};
 let capturedImageData = null;
 let stream = null;
 
-// Load config from localStorage or use fixed config
 function loadConfig() {
-    // Kiểm tra nếu đã có cấu hình cố định
     if (FIXED_CONFIG.apiKey !== 'AIzaPASTE_YOUR_GEMINI_KEY_HERE' &&  
         FIXED_CONFIG.sheetsUrl !== 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec') {
-        // Dùng config cố định từ code
         config = {
             apiKey: FIXED_CONFIG.apiKey,
             sheetsUrl: FIXED_CONFIG.sheetsUrl
         };
-        // Bỏ qua màn hình setup, vào thẳng màn hình nhập thông tin
         document.getElementById('setupScreen').classList.add('hidden');
         document.getElementById('infoScreen').classList.remove('hidden');
         return;
     }
     
-    // Nếu chưa có config cố định, dùng localStorage
     const saved = localStorage.getItem('toefl_config');
     if (saved) {
         config = JSON.parse(saved);
@@ -438,13 +433,11 @@ async function processAnswerSheet() {
     updateStatus('Đang gửi ảnh đến AI...');
     
     try {
-        // Convert base64 to proper format
         const base64Data = capturedImageData.split(',')[1];
         
         updateStatus('AI đang phân tích phiếu trả lời...');
         
-        // Call Gemini API
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${config.apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${config.apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -497,7 +490,6 @@ CHỈ TRẢ VỀ JSON, KHÔNG GIẢI THÍCH GÌ THÊM. Nếu câu nào không t�
         
         updateStatus('Đang xử lý kết quả...');
         
-        // Parse JSON from AI response
         const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
             throw new Error('Không thể đọc được phiếu trả lời. Vui lòng chụp lại ảnh rõ hơn.');
@@ -505,15 +497,12 @@ CHỈ TRẢ VỀ JSON, KHÔNG GIẢI THÍCH GÌ THÊM. Nếu câu nào không t�
         
         const studentAnswers = JSON.parse(jsonMatch[0]);
         
-        // Calculate scores
         const results = calculateScores(studentAnswers);
         
         updateStatus('Đang gửi kết quả lên Google Sheets...');
         
-        // Send to Google Sheets
         await sendToGoogleSheets(results);
         
-        // Show results
         displayResults(results);
         
     } catch (error) {
@@ -547,7 +536,6 @@ function analyzeSection(section, answers) {
     let totalQuestions = Object.keys(correctAnswers).length;
     const wrongQuestions = [];
     
-    // Calculate total score
     for (const [qNum, correctAns] of Object.entries(correctAnswers)) {
         if (answers[qNum] === correctAns) {
             correctCount++;
@@ -558,7 +546,6 @@ function analyzeSection(section, answers) {
     
     const totalScore = Math.round((correctCount / totalQuestions) * 100);
     
-    // Calculate skill scores
     const skillScores = {};
     for (const [skillName, skillData] of Object.entries(skills)) {
         let skillCorrect = 0;
@@ -576,8 +563,12 @@ function analyzeSection(section, answers) {
         };
     }
     
-    // Estimate CEFR level
-    const cefrLevel = estimateCEFR(totalScore, skillScores, section);
+    const cefrLevel = estimateCEFRLevel(totalScore, skillScores, section);
+    const overallAssessment = generateOverallAssessment(totalScore, cefrLevel, section);
+    const skillAnalysis = section === 'reading' ? analyzeReadingSkills(skillScores) : analyzeListeningSkills(skillScores);
+    const strengthsDetail = generateDetailedStrengths(skillScores, skills);
+    const weaknessesDetail = generateDetailedWeaknesses(skillScores, skills);
+    const recommendationsDetail = generateDetailedRecommendations(totalScore, skillScores, cefrLevel, section);
     
     return {
         answers,
@@ -587,48 +578,97 @@ function analyzeSection(section, answers) {
         wrongQuestions,
         skillScores,
         cefrLevel,
-        analysis: generateAnalysis(totalScore, skillScores, cefrLevel, section)
+        overallAssessment,
+        skillAnalysis,
+        strengthsDetail,
+        weaknessesDetail,
+        recommendationsDetail
     };
 }
 
-function estimateCEFR(score, skills, section) {
+function estimateCEFRLevel(score, skills, section) {
     if (section === 'reading') {
         const vocab = skills.vocabulary.percentage;
         const inference = skills.inference.percentage;
+        const details = skills.details.percentage;
         
-        if (score >= 90 && vocab >= 85 && inference >= 85) return 'B1 - Cuối';
-        if (score >= 80 && vocab >= 75) return 'B1 - Giữa';
-        if (score >= 70 && inference >= 60) return 'B1 - Đầu';
-        if (score >= 60) return 'A2 - Cuối';
-        if (score >= 50) return 'A2 - Giữa';
-        if (score >= 40) return 'A2 - Đầu';
-        return 'A1';
+        if (score >= 90 && vocab >= 85 && inference >= 85) return 'B1 - Cuối (Upper B1)';
+        if (score >= 80 && vocab >= 75) return 'B1 - Giữa (Mid B1)';
+        if (score >= 70 && inference >= 60) return 'B1 - Đầu (Lower B1)';
+        if (score >= 60 && details >= 65) return 'A2 - Cuối (Upper A2)';
+        if (score >= 50) return 'A2 - Giữa (Mid A2)';
+        if (score >= 40) return 'A2 - Đầu (Lower A2)';
+        if (score >= 30) return 'A1 - Cuối (Upper A1)';
+        if (score >= 20) return 'A1 - Giữa (Mid A1)';
+        return 'A1 - Đầu (Lower A1)';
     } else {
         const basic = skills.basicComprehension.percentage;
         const inference = skills.inference.percentage;
+        const details = skills.details.percentage;
         
-        if (score >= 90 && basic >= 85 && inference >= 85) return 'B1 - Cuối';
-        if (score >= 80 && inference >= 70) return 'B1 - Giữa';
-        if (score >= 70 && inference >= 60) return 'B1 - Đầu';
-        if (score >= 60) return 'A2 - Cuối';
-        if (score >= 50) return 'A2 - Giữa';
-        if (score >= 40) return 'A2 - Đầu';
-        return 'A1';
+        if (score >= 90 && basic >= 85 && inference >= 85) return 'B1 - Cuối (Upper B1)';
+        if (score >= 80 && inference >= 70) return 'B1 - Giữa (Mid B1)';
+        if (score >= 70 && inference >= 60) return 'B1 - Đầu (Lower B1)';
+        if (score >= 60 && details >= 65) return 'A2 - Cuối (Upper A2)';
+        if (score >= 50) return 'A2 - Giữa (Mid A2)';
+        if (score >= 40) return 'A2 - Đầu (Lower A2)';
+        if (score >= 30) return 'A1 - Cuối (Upper A1)';
+        if (score >= 20) return 'A1 - Giữa (Mid A1)';
+        return 'A1 - Đầu (Lower A1)';
     }
 }
 
-function generateAnalysis(score, skills, cefr, section) {
-    let analysis = `Điểm: ${score}% (${cefr}). `;
+function generateOverallAssessment(score, cefrLevel, section) {
+    let assessment = `Học sinh đạt ${score}% (${cefrLevel}). `;
     
+    const skillType = section === 'reading' ? 'đọc' : 'nghe';
+    
+    if (score >= 80) {
+        assessment += `Kỹ năng ${skillType} tiếng Anh rất tốt, có thể hiểu ${section === 'reading' ? 'và phân tích các bài đọc phức tạp' : 'hội thoại và câu chuyện phức tạp'}. `;
+    } else if (score >= 60) {
+        assessment += `Kỹ năng ${skillType} tiếng Anh khá, có thể hiểu nội dung chính và một số chi tiết${section === 'reading' ? '' : ' quan trọng'}. `;
+    } else if (score >= 40) {
+        assessment += `Kỹ năng ${skillType} tiếng Anh cơ bản, cần cải thiện thêm để nắm vững các kỹ năng ${skillType} hiểu. `;
+    } else {
+        assessment += `Kỹ năng ${skillType} tiếng Anh còn yếu, cần tập trung ${section === 'reading' ? 'học từ vựng và kỹ năng đọc hiểu' : 'luyện nghe từ vựng và câu đơn giản hàng ngày'}. `;
+    }
+    
+    return assessment;
+}
+
+function analyzeReadingSkills(skills) {
+    let analysis = 'Kỹ năng đọc hiểu: ';
     const strengths = [];
     const weaknesses = [];
     
-    for (const [skillName, skillData] of Object.entries(skills)) {
-        if (skillData.percentage >= 75) {
-            strengths.push(`${skillData.name} (${skillData.percentage}%)`);
-        } else if (skillData.percentage < 60) {
-            weaknesses.push(`${skillData.name} (${skillData.percentage}%)`);
-        }
+    if (skills.vocabulary.percentage >= 75) {
+        strengths.push('từ vựng tốt');
+    } else if (skills.vocabulary.percentage < 60) {
+        weaknesses.push('từ vựng (cần học thêm từ A2-B1)');
+    }
+    
+    if (skills.details.percentage >= 75) {
+        strengths.push('tìm chi tiết');
+    } else if (skills.details.percentage < 60) {
+        weaknesses.push('tìm chi tiết (cần đọc kỹ từng câu)');
+    }
+    
+    if (skills.mainIdea.percentage >= 75) {
+        strengths.push('xác định ý chính');
+    } else if (skills.mainIdea.percentage < 60) {
+        weaknesses.push('xác định ý chính (cần luyện tóm tắt đoạn văn)');
+    }
+    
+    if (skills.inference.percentage >= 75) {
+        strengths.push('suy luận');
+    } else if (skills.inference.percentage < 60) {
+        weaknesses.push('suy luận ẩn ý (cần đọc giữa các dòng)');
+    }
+    
+    if (skills.sequence.percentage >= 75) {
+        strengths.push('hiểu trình tự');
+    } else if (skills.sequence.percentage < 60) {
+        weaknesses.push('hiểu trình tự hướng dẫn (cần luyện đọc instructions)');
     }
     
     if (strengths.length > 0) {
@@ -637,9 +677,176 @@ function generateAnalysis(score, skills, cefr, section) {
     
     if (weaknesses.length > 0) {
         analysis += `Cần cải thiện: ${weaknesses.join(', ')}. `;
+    } else {
+        analysis += 'Tất cả các kỹ năng đọc đều tốt. ';
     }
     
     return analysis;
+}
+
+function analyzeListeningSkills(skills) {
+    let analysis = 'Kỹ năng nghe: ';
+    const strengths = [];
+    const weaknesses = [];
+    
+    if (skills.basicComprehension.percentage >= 75) {
+        strengths.push('hiểu cơ bản');
+    } else if (skills.basicComprehension.percentage < 60) {
+        weaknesses.push('hiểu câu đơn giản (cần luyện nghe từ vựng cơ bản)');
+    }
+    
+    if (skills.details.percentage >= 75) {
+        strengths.push('nghe chi tiết');
+    } else if (skills.details.percentage < 60) {
+        weaknesses.push('nghe chi tiết (cần chú ý từ khóa)');
+    }
+    
+    if (skills.mainIdea.percentage >= 75) {
+        strengths.push('xác định ý chính');
+    } else if (skills.mainIdea.percentage < 60) {
+        weaknesses.push('xác định ý chính (cần tập tóm tắt nội dung)');
+    }
+    
+    if (skills.inference.percentage >= 75) {
+        strengths.push('suy luận');
+    } else if (skills.inference.percentage < 60) {
+        weaknesses.push('suy luận ẩn ý (cần luyện đoán nghĩa)');
+    }
+    
+    if (skills.purpose.percentage >= 75) {
+        strengths.push('hiểu mục đích');
+    } else if (skills.purpose.percentage < 60) {
+        weaknesses.push('hiểu mục đích giao tiếp (cần luyện function language)');
+    }
+    
+    if (strengths.length > 0) {
+        analysis += `Điểm mạnh: ${strengths.join(', ')}. `;
+    }
+    
+    if (weaknesses.length > 0) {
+        analysis += `Cần cải thiện: ${weaknesses.join(', ')}. `;
+    } else {
+        analysis += 'Tất cả các kỹ năng nghe đều tốt. ';
+    }
+    
+    return analysis;
+}
+
+function generateDetailedStrengths(skills, skillCategories) {
+    const strengths = [];
+    
+    for (const [skill, data] of Object.entries(skills)) {
+        if (data.percentage >= 75) {
+            strengths.push(`${data.name} (${data.percentage}%)`);
+        }
+    }
+    
+    if (strengths.length === 0) {
+        return 'Cần cố gắng thêm để phát triển điểm mạnh';
+    }
+    
+    return strengths.join(', ');
+}
+
+function generateDetailedWeaknesses(skills, skillCategories) {
+    const weaknesses = [];
+    
+    for (const [skill, data] of Object.entries(skills)) {
+        if (data.percentage < 60) {
+            weaknesses.push(`${data.name} (${data.percentage}%) - Trình độ ${data.level}`);
+        }
+    }
+    
+    if (weaknesses.length === 0) {
+        return 'Không có điểm yếu đáng kể';
+    }
+    
+    return weaknesses.join(' | ');
+}
+
+function generateDetailedRecommendations(score, skills, cefrLevel, section) {
+    let recommendations = '';
+    
+    if (section === 'reading') {
+        if (skills.vocabulary.percentage < 60) {
+            recommendations += '📚 TỪ VỰNG: (1) Học 10-15 từ mới mỗi ngày qua Quizlet hoặc Anki; (2) Đọc sách truyện tranh tiếng Anh trình độ A1-A2; (3) Xem phim hoạt hình có phụ đề tiếng Anh. ';
+        }
+        
+        if (skills.details.percentage < 60) {
+            recommendations += '🔍 CHI TIẾT: (1) Luyện scanning (quét tìm thông tin cụ thể); (2) Đọc lại câu hỏi 2 lần trước khi tìm đáp án; (3) Gạch chân keywords trong câu hỏi. ';
+        }
+        
+        if (skills.mainIdea.percentage < 60) {
+            recommendations += '💡 Ý CHÍNH: (1) Đọc câu đầu và câu cuối mỗi đoạn; (2) Luyện tóm tắt đoạn văn bằng 1 câu; (3) Tìm từ khóa lặp lại nhiều lần trong bài. ';
+        }
+        
+        if (skills.inference.percentage < 60) {
+            recommendations += '🧠 SUY LUẬN: (1) Học cách "đọc giữa các dòng"; (2) Suy nghĩ "tác giả muốn nói gì?"; (3) Luyện đọc các bài có inference questions. ';
+        }
+        
+        if (skills.sequence.percentage < 60) {
+            recommendations += '📋 TRÌNH TỰ: (1) Luyện đọc instructions (công thức nấu ăn, hướng dẫn làm đồ thủ công); (2) Chú ý các từ: first, then, next, finally; (3) Vẽ sơ đồ các bước khi đọc. ';
+        }
+        
+        if (cefrLevel.includes('A1')) {
+            recommendations += '\n🎯 MỤC TIÊU: Để đạt A2, cần: (1) Nắm 500-1000 từ vựng cơ bản; (2) Đọc được bài ngắn 100-150 từ; (3) Hiểu ý chính và chi tiết đơn giản. ';
+        } else if (cefrLevel.includes('A2')) {
+            recommendations += '\n🎯 MỤC TIÊU: Để đạt B1, cần: (1) Nắm 1500-2000 từ vựng; (2) Đọc được bài 200-300 từ; (3) Hiểu được ẩn ý và suy luận. ';
+        } else if (cefrLevel.includes('B1')) {
+            recommendations += '\n🎯 MỤC TIÊU: Duy trì và nâng cao B1, cần: (1) Đọc sách, báo tiếng Anh thường xuyên; (2) Học từ vựng academic; (3) Luyện IELTS Reading hoặc TOEFL Junior. ';
+        }
+        
+        recommendations += '\n📖 TÀI LIỆU ĐỀ XUẤT: ';
+        if (score < 50) {
+            recommendations += 'Oxford Read and Discover Level 1-2, Cambridge Storybooks Level 1-2, Reading Explorer Foundations. ';
+        } else if (score < 70) {
+            recommendations += 'Oxford Read and Discover Level 3-4, Cambridge Storybooks Level 3-4, Reading Explorer 1. ';
+        } else {
+            recommendations += 'Oxford Read and Discover Level 5-6, Cambridge Storybooks Level 5-6, Reading Explorer 2. ';
+        }
+    } else {
+        // LISTENING
+        if (skills.basicComprehension.percentage < 60) {
+            recommendations += '🎧 HIỂU CƠ BẢN: (1) Nghe 15-20 phút mỗi ngày với audio đơn giản; (2) Xem phim hoạt hình có phụ đề tiếng Anh; (3) Luyện dictation (nghe viết) câu ngắn. ';
+        }
+        
+        if (skills.details.percentage < 60) {
+            recommendations += '🔍 CHI TIẾT: (1) Tập trung nghe từ khóa (who, what, when, where); (2) Đọc câu hỏi trước khi nghe; (3) Ghi chú nhanh thông tin quan trọng. ';
+        }
+        
+        if (skills.mainIdea.percentage < 60) {
+            recommendations += '💡 Ý CHÍNH: (1) Chú ý câu đầu và câu cuối; (2) Luyện tóm tắt đoạn nghe bằng 1 câu; (3) Tìm ý được lặp lại nhiều lần. ';
+        }
+        
+        if (skills.inference.percentage < 60) {
+            recommendations += '🧠 SUY LUẬN: (1) Học cách "nghe giữa các dòng"; (2) Chú ý ngữ điệu và cảm xúc người nói; (3) Luyện đoán nghĩa từ ngữ cảnh. ';
+        }
+        
+        if (skills.purpose.percentage < 60) {
+            recommendations += '🎯 MỤC ĐÍCH: (1) Học function language (mời, từ chối, gợi ý); (2) Chú ý cấu trúc "Why did...?" "What...for?"; (3) Luyện với phone messages và conversations. ';
+        }
+        
+        if (cefrLevel.includes('A1')) {
+            recommendations += '\n🎯 MỤC TIÊU: Để đạt A2, cần: (1) Nghe hiểu 300-500 từ vựng hàng ngày; (2) Hiểu hội thoại ngắn 1-2 phút; (3) Nắm được ý chính và chi tiết đơn giản. ';
+        } else if (cefrLevel.includes('A2')) {
+            recommendations += '\n🎯 MỤC TIÊU: Để đạt B1, cần: (1) Nghe hiểu 1000-1500 từ vựng; (2) Hiểu audio 3-5 phút; (3) Suy luận được ẩn ý và thái độ người nói. ';
+        } else if (cefrLevel.includes('B1')) {
+            recommendations += '\n🎯 MỤC TIÊU: Duy trì và nâng cao B1, cần: (1) Nghe podcast, audiobook tiếng Anh; (2) Học từ vựng academic và idioms; (3) Luyện IELTS Listening hoặc TOEFL Junior. ';
+        }
+        
+        recommendations += '\n📖 TÀI LIỆU ĐỀ XUẤT: ';
+        if (score < 50) {
+            recommendations += 'British Council LearnEnglish Kids, ESL Pod (Beginner), Simple English Videos, Peppa Pig (with subtitles). ';
+        } else if (score < 70) {
+            recommendations += 'BBC Learning English (6 Minute English), ESL Pod (Intermediate), TED-Ed, VOA Learning English. ';
+        } else {
+            recommendations += 'TED Talks, Podcasts (This American Life), BBC Radio, National Geographic documentaries. ';
+        }
+        
+        recommendations += '\n💪 LUYỆN TẬP HÀNG NGÀY: (1) Nghe 20-30 phút mỗi ngày; (2) Shadow (lặp lại ngay sau người nói); (3) Dictation 5 câu mỗi ngày; (4) Xem phim có phụ đề tiếng Anh.';
+    }
+    
+    return recommendations.trim();
 }
 
 async function sendToGoogleSheets(results) {
@@ -655,7 +862,11 @@ async function sendToGoogleSheets(results) {
         readingTotal: results.reading.totalQuestions,
         readingCEFR: results.reading.cefrLevel,
         readingWrongQuestions: results.reading.wrongQuestions.join(', ') || 'Không có',
-        readingAnalysis: results.reading.analysis,
+        readingOverallAssessment: results.reading.overallAssessment,
+        readingSkillAnalysis: results.reading.skillAnalysis,
+        readingStrengthsDetail: results.reading.strengthsDetail,
+        readingWeaknessesDetail: results.reading.weaknessesDetail,
+        readingRecommendations: results.reading.recommendationsDetail,
         readingVocabulary: results.reading.skillScores.vocabulary?.percentage || 0,
         readingMainIdea: results.reading.skillScores.mainIdea?.percentage || 0,
         readingDetails: results.reading.skillScores.details?.percentage || 0,
@@ -669,7 +880,11 @@ async function sendToGoogleSheets(results) {
         listeningTotal: results.listening.totalQuestions,
         listeningCEFR: results.listening.cefrLevel,
         listeningWrongQuestions: results.listening.wrongQuestions.join(', ') || 'Không có',
-        listeningAnalysis: results.listening.analysis,
+        listeningOverallAssessment: results.listening.overallAssessment,
+        listeningSkillAnalysis: results.listening.skillAnalysis,
+        listeningStrengthsDetail: results.listening.strengthsDetail,
+        listeningWeaknessesDetail: results.listening.weaknessesDetail,
+        listeningRecommendations: results.listening.recommendationsDetail,
         listeningBasic: results.listening.skillScores.basicComprehension?.percentage || 0,
         listeningMainIdea: results.listening.skillScores.mainIdea?.percentage || 0,
         listeningDetails: results.listening.skillScores.details?.percentage || 0,
@@ -810,7 +1025,7 @@ function displayResults(results) {
         </div>
         
         <!-- OVERALL ANALYSIS -->
-        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300">
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300 mb-6">
             <h3 class="text-xl font-bold text-purple-700 mb-4">📊 Phân Tích Tổng Quan</h3>
             
             <div class="grid md:grid-cols-2 gap-4 mb-4">
@@ -830,17 +1045,62 @@ function displayResults(results) {
             
             <div class="bg-white rounded-lg p-4 space-y-3">
                 <div>
-                    <p class="font-semibold text-green-700 mb-2">✅ Reading Analysis:</p>
-                    <p class="text-sm text-gray-700">${results.reading.analysis}</p>
+                    <p class="font-semibold text-green-700 mb-2">✅ Reading - Đánh giá:</p>
+                    <p class="text-sm text-gray-700 mb-2">${results.reading.overallAssessment}</p>
+                    <p class="text-sm text-gray-700">${results.reading.skillAnalysis}</p>
                 </div>
                 <div>
-                    <p class="font-semibold text-blue-700 mb-2">✅ Listening Analysis:</p>
-                    <p class="text-sm text-gray-700">${results.listening.analysis}</p>
+                    <p class="font-semibold text-blue-700 mb-2">✅ Listening - Đánh giá:</p>
+                    <p class="text-sm text-gray-700 mb-2">${results.listening.overallAssessment}</p>
+                    <p class="text-sm text-gray-700">${results.listening.skillAnalysis}</p>
                 </div>
             </div>
         </div>
         
-        <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 mt-6">
+        <!-- DETAILED STRENGTHS & WEAKNESSES -->
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <!-- READING DETAILS -->
+            <div class="bg-white rounded-xl p-6 border-2 border-green-200">
+                <h3 class="text-lg font-bold text-green-700 mb-4">📖 Reading - Chi tiết</h3>
+                
+                <div class="mb-4">
+                    <p class="font-semibold text-green-600 mb-2">💪 Điểm mạnh:</p>
+                    <p class="text-sm text-gray-700">${results.reading.strengthsDetail}</p>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="font-semibold text-orange-600 mb-2">⚠️ Điểm yếu:</p>
+                    <p class="text-sm text-gray-700">${results.reading.weaknessesDetail}</p>
+                </div>
+                
+                <div>
+                    <p class="font-semibold text-purple-600 mb-2">📚 Gợi ý cải thiện:</p>
+                    <p class="text-sm text-gray-700 whitespace-pre-line">${results.reading.recommendationsDetail}</p>
+                </div>
+            </div>
+            
+            <!-- LISTENING DETAILS -->
+            <div class="bg-white rounded-xl p-6 border-2 border-blue-200">
+                <h3 class="text-lg font-bold text-blue-700 mb-4">🎧 Listening - Chi tiết</h3>
+                
+                <div class="mb-4">
+                    <p class="font-semibold text-green-600 mb-2">💪 Điểm mạnh:</p>
+                    <p class="text-sm text-gray-700">${results.listening.strengthsDetail}</p>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="font-semibold text-orange-600 mb-2">⚠️ Điểm yếu:</p>
+                    <p class="text-sm text-gray-700">${results.listening.weaknessesDetail}</p>
+                </div>
+                
+                <div>
+                    <p class="font-semibold text-purple-600 mb-2">📚 Gợi ý cải thiện:</p>
+                    <p class="text-sm text-gray-700 whitespace-pre-line">${results.listening.recommendationsDetail}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6">
             <div class="flex items-start gap-3">
                 <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
