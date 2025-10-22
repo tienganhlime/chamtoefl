@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 50%, #A5D6A7 100%);
             min-height: 100vh;
         }
         .fade-in {
@@ -20,7 +20,7 @@
         }
         .spinner {
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border-top: 4px solid #16a34a;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -58,9 +58,11 @@
         <div class="text-center mb-8">
             <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
                  alt="LIME Logo" 
-                 class="w-24 h-24 mx-auto mb-4 object-contain">
-            <h1 class="text-3xl font-bold text-purple-700 mb-2">Hệ Thống Chấm Điểm TOEFL</h1>
-            <p class="text-purple-600">Trung Tâm Tiếng Anh LIME - Hotline: 0976222792</p>
+                 class="w-32 h-32 mx-auto mb-4 object-contain">
+            <h1 class="text-4xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+            <p class="text-green-600 text-lg mb-1">Hệ Thống Chấm Điểm TOEFL</p>
+            <p class="text-green-600">Hotline: 0976222792</p>
+            <div class="mt-4 h-1 w-32 bg-green-500 mx-auto rounded"></div>
         </div>
 
         <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-6">
@@ -77,30 +79,30 @@
 
         <div class="space-y-4">
             <div>
-                <label class="block text-purple-800 font-semibold mb-2">
+                <label class="block text-green-800 font-semibold mb-2">
                     Anthropic API Key *
                     <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-blue-600 text-sm ml-2">(Lấy API key tại đây)</a>
                 </label>
                 <input type="password" id="apiKeyInput" 
-                    class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-sm"
+                    class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none font-mono text-sm"
                     placeholder="sk-ant-api03-...">
             </div>
 
             <div>
-                <label class="block text-purple-800 font-semibold mb-2">Google Sheets URL *</label>
+                <label class="block text-green-800 font-semibold mb-2">Google Sheets URL *</label>
                 <input type="text" id="sheetsUrlInput" 
-                    class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                    class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
                     placeholder="https://script.google.com/macros/s/...">
             </div>
         </div>
 
         <button onclick="saveConfig()" 
-            class="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+            class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
             Lưu cấu hình và Bắt đầu
         </button>
 
-        <div class="mt-6 p-4 bg-purple-50 rounded-lg">
-            <p class="text-sm text-purple-700">
+        <div class="mt-6 p-4 bg-green-50 rounded-lg">
+            <p class="text-sm text-green-700">
                 <strong>💡 Lưu ý:</strong> API key sẽ được lưu trên trình duyệt của bạn (localStorage). 
                 Không chia sẻ API key với người khác.
             </p>
@@ -115,36 +117,47 @@
             <div class="text-center mb-8">
                 <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
                      alt="LIME Logo" 
-                     class="w-24 h-24 mx-auto mb-4 object-contain">
-                <h1 class="text-3xl font-bold text-purple-700 mb-2">Chấm Bài TOEFL Primary</h1>
-                <p class="text-purple-600">Step 2 - Reading & Listening</p>
+                     class="w-32 h-32 mx-auto mb-4 object-contain">
+                <h1 class="text-4xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+                <p class="text-green-600 text-lg">Hotline: 0976222792</p>
+                <div class="mt-4 h-1 w-32 bg-green-500 mx-auto rounded"></div>
+            </div>
+            
+            <div class="bg-green-50 rounded-xl p-6 mb-6">
+                <h2 class="text-2xl font-bold text-green-800 mb-4">TOEFL PRIMARY STEP 2 - TEST 1</h2>
+                <div class="space-y-2 text-green-700">
+                    <p>📝 Chấm Bài TOEFL Primary</p>
+                    <p>📸 Chụp phiếu trả lời tự động</p>
+                    <p>✅ Phân tích chi tiết năng lực học sinh</p>
+                    <p>📊 Reading & Listening</p>
+                </div>
             </div>
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-purple-800 font-semibold mb-2">Họ và tên học sinh *</label>
+                    <label class="block text-green-800 font-semibold mb-2">Họ và tên học sinh *</label>
                     <input type="text" id="studentName" 
-                        class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                        class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
                         placeholder="Nhập họ tên">
                 </div>
                 
                 <div>
-                    <label class="block text-purple-800 font-semibold mb-2">Lớp *</label>
+                    <label class="block text-green-800 font-semibold mb-2">Lớp *</label>
                     <input type="text" id="studentClass" 
-                        class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                        class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
                         placeholder="Nhập lớp">
                 </div>
                 
                 <div>
-                    <label class="block text-purple-800 font-semibold mb-2">Số điện thoại phụ huynh *</label>
+                    <label class="block text-green-800 font-semibold mb-2">Số điện thoại phụ huynh *</label>
                     <input type="tel" id="parentPhone" 
-                        class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                        class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
                         placeholder="Nhập số điện thoại">
                 </div>
             </div>
 
             <button onclick="startCapture()" 
-                class="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
                 📸 Chụp Phiếu Trả Lời
             </button>
 
@@ -160,7 +173,12 @@
 <div id="cameraScreen" class="hidden min-h-screen p-4 fade-in">
     <div class="max-w-4xl mx-auto mt-8">
         <div class="bg-white rounded-2xl shadow-2xl p-8">
-            <h2 class="text-2xl font-bold text-purple-700 mb-6 text-center">📸 Chụp Phiếu Trả Lời</h2>
+            <div class="text-center mb-6">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" 
+                     class="w-20 h-20 mx-auto mb-2 object-contain">
+                <h2 class="text-2xl font-bold text-green-700">📸 Chụp Phiếu Trả Lời</h2>
+            </div>
 
             <div class="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 mb-6">
                 <div class="flex items-start gap-2">
@@ -200,25 +218,30 @@
 <div id="previewScreen" class="hidden min-h-screen p-4 fade-in">
     <div class="max-w-4xl mx-auto mt-8">
         <div class="bg-white rounded-2xl shadow-2xl p-8">
-            <h2 class="text-2xl font-bold text-purple-700 mb-6 text-center">🔍 Xác Nhận Ảnh</h2>
+            <div class="text-center mb-6">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" 
+                     class="w-20 h-20 mx-auto mb-2 object-contain">
+                <h2 class="text-2xl font-bold text-green-700">🔍 Xác Nhận Ảnh</h2>
+            </div>
 
             <div id="previewContainer" class="mb-6 text-center">
                 <img id="previewImage" class="preview-image mx-auto" alt="Preview">
             </div>
 
             <div id="processingStatus" class="hidden mb-6">
-                <div class="bg-purple-50 border-2 border-purple-300 rounded-xl p-6">
+                <div class="bg-green-50 border-2 border-green-300 rounded-xl p-6">
                     <div class="flex items-center justify-center gap-4 mb-4">
                         <div class="spinner"></div>
-                        <p class="text-purple-700 font-bold text-lg">Đang xử lý...</p>
+                        <p class="text-green-700 font-bold text-lg">Đang xử lý...</p>
                     </div>
-                    <p id="statusText" class="text-center text-purple-600"></p>
+                    <p id="statusText" class="text-center text-green-600"></p>
                 </div>
             </div>
 
             <div class="flex gap-4">
                 <button onclick="processAnswerSheet()" id="processBtn"
-                    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
                     ✅ Xác Nhận & Chấm Điểm
                 </button>
                 <button onclick="retakePhoto()" id="retakeBtn"
@@ -237,8 +260,10 @@
             <div class="text-center mb-8">
                 <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
                      alt="LIME Logo" 
-                     class="w-24 h-24 mx-auto mb-4 object-contain">
-                <h1 class="text-3xl font-bold text-purple-700 mb-2">📊 Kết Quả Chấm Điểm</h1>
+                     class="w-32 h-32 mx-auto mb-4 object-contain">
+                <h1 class="text-3xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+                <p class="text-green-600">Hotline: 0976222792</p>
+                <h2 class="text-2xl font-bold text-green-800 mt-4">📊 Kết Quả Chấm Điểm</h2>
             </div>
 
             <div id="resultContent" class="space-y-6">
@@ -246,7 +271,7 @@
             </div>
 
             <button onclick="resetSystem()" 
-                class="w-full mt-8 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                class="w-full mt-8 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
                 🔄 Chấm Bài Mới
             </button>
         </div>
@@ -257,7 +282,7 @@
 // *** CẤU HÌNH CỐ ĐỊNH - NHẬP TRỰC TIẾP VÀO ĐÂY ***
 const FIXED_CONFIG = {
     apiKey: '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',  // ← DÁN API KEY VÀO ĐÂY
-    sheetsUrl: 'https://script.google.com/macros/s/AKfycbx1deurQLDoeUsKpn1jkHswE5jwe4QfPyR7XthJBF_6fe_0gQx2HNi6ouUqPPnv5P1UQQ/exec'  // ← DÁN GOOGLE SHEETS URL VÀO ĐÂY
+    sheetsUrl: 'https://script.google.com/macros/s/AKfycbwV2TPiAJK2bGqB3YOfPWC8fCLf1eJRlNhZWZxbdZJfdpK5jaK6rogezX6aK1AabCMOuw/exec'  // ← DÁN GOOGLE SHEETS URL VÀO ĐÂY
 };
 
 // ĐÁP ÁN CHUẨN
@@ -308,7 +333,6 @@ let studentInfo = {};
 let capturedImageData = null;
 let stream = null;
 
-// Load config from localStorage or use fixed config
 function loadConfig() {
     // Kiểm tra nếu đã có cấu hình cố định
     if (FIXED_CONFIG.apiKey !== 'sk-ant-api03-PASTE_YOUR_API_KEY_HERE' && 
@@ -437,7 +461,6 @@ async function processAnswerSheet() {
     updateStatus('Đang gửi ảnh đến AI...');
     
     try {
-        // Convert base64 to proper format for Claude
         const base64Data = capturedImageData.split(',')[1];
         
         updateStatus('AI đang phân tích phiếu trả lời...');
@@ -502,7 +525,6 @@ CHỈ TRẢ VỀ JSON, KHÔNG GIẢI THÍCH GÌ THÊM. Nếu câu nào không t�
         
         updateStatus('Đang xử lý kết quả...');
         
-        // Parse JSON from AI response
         const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
             throw new Error('Không thể đọc được phiếu trả lời. Vui lòng chụp lại ảnh rõ hơn.');
@@ -510,15 +532,12 @@ CHỈ TRẢ VỀ JSON, KHÔNG GIẢI THÍCH GÌ THÊM. Nếu câu nào không t�
         
         const studentAnswers = JSON.parse(jsonMatch[0]);
         
-        // Calculate scores
         const results = calculateScores(studentAnswers);
         
         updateStatus('Đang gửi kết quả lên Google Sheets...');
         
-        // Send to Google Sheets
         await sendToGoogleSheets(results);
         
-        // Show results
         displayResults(results);
         
     } catch (error) {
@@ -552,7 +571,6 @@ function analyzeSection(section, answers) {
     let totalQuestions = Object.keys(correctAnswers).length;
     const wrongQuestions = [];
     
-    // Calculate total score
     for (const [qNum, correctAns] of Object.entries(correctAnswers)) {
         if (answers[qNum] === correctAns) {
             correctCount++;
@@ -563,7 +581,6 @@ function analyzeSection(section, answers) {
     
     const totalScore = Math.round((correctCount / totalQuestions) * 100);
     
-    // Calculate skill scores
     const skillScores = {};
     for (const [skillName, skillData] of Object.entries(skills)) {
         let skillCorrect = 0;
@@ -581,7 +598,6 @@ function analyzeSection(section, answers) {
         };
     }
     
-    // Estimate CEFR level
     const cefrLevel = estimateCEFR(totalScore, skillScores, section);
     
     return {
@@ -654,7 +670,6 @@ async function sendToGoogleSheets(results) {
         class: results.student.class,
         parentPhone: results.student.parentPhone,
         
-        // Reading data
         readingScore: results.reading.totalScore,
         readingCorrect: results.reading.correctCount,
         readingTotal: results.reading.totalQuestions,
@@ -668,7 +683,6 @@ async function sendToGoogleSheets(results) {
         readingSequence: results.reading.skillScores.sequence?.percentage || 0,
         readingPurpose: results.reading.skillScores.purpose?.percentage || 0,
         
-        // Listening data
         listeningScore: results.listening.totalScore,
         listeningCorrect: results.listening.correctCount,
         listeningTotal: results.listening.totalQuestions,
@@ -681,10 +695,8 @@ async function sendToGoogleSheets(results) {
         listeningInference: results.listening.skillScores.inference?.percentage || 0,
         listeningPurpose: results.listening.skillScores.purpose?.percentage || 0,
         
-        // Overall
         overallScore: Math.round((results.reading.totalScore + results.listening.totalScore) / 2),
         
-        // Raw answers
         readingAnswers: JSON.stringify(results.reading.answers),
         listeningAnswers: JSON.stringify(results.listening.answers)
     };
@@ -706,8 +718,8 @@ function displayResults(results) {
     document.getElementById('resultScreen').classList.remove('hidden');
     
     const html = `
-        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6 border-2 border-purple-200">
-            <h2 class="text-2xl font-bold text-purple-700 mb-4">📋 Thông Tin Học Sinh</h2>
+        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6 border-2 border-green-200">
+            <h2 class="text-2xl font-bold text-green-700 mb-4">📋 Thông Tin Học Sinh</h2>
             <div class="grid grid-cols-2 gap-4 text-lg">
                 <div><strong>Họ tên:</strong> ${results.student.name}</div>
                 <div><strong>Lớp:</strong> ${results.student.class}</div>
@@ -717,7 +729,6 @@ function displayResults(results) {
         </div>
         
         <div class="grid md:grid-cols-2 gap-6 mb-6">
-            <!-- READING RESULTS -->
             <div class="bg-green-50 rounded-xl p-6 border-2 border-green-300">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
@@ -765,7 +776,6 @@ function displayResults(results) {
                 ` : ''}
             </div>
             
-            <!-- LISTENING RESULTS -->
             <div class="bg-blue-50 rounded-xl p-6 border-2 border-blue-300">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
@@ -814,20 +824,19 @@ function displayResults(results) {
             </div>
         </div>
         
-        <!-- OVERALL ANALYSIS -->
-        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300">
-            <h3 class="text-xl font-bold text-purple-700 mb-4">📊 Phân Tích Tổng Quan</h3>
+        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border-2 border-green-300">
+            <h3 class="text-xl font-bold text-green-700 mb-4">📊 Phân Tích Tổng Quan</h3>
             
             <div class="grid md:grid-cols-2 gap-4 mb-4">
                 <div class="bg-white rounded-lg p-4">
                     <p class="text-sm text-gray-600 mb-1">Điểm trung bình</p>
-                    <p class="text-3xl font-bold text-purple-600">
+                    <p class="text-3xl font-bold text-green-600">
                         ${Math.round((results.reading.totalScore + results.listening.totalScore) / 2)}%
                     </p>
                 </div>
                 <div class="bg-white rounded-lg p-4">
                     <p class="text-sm text-gray-600 mb-1">CEFR Level dự kiến</p>
-                    <p class="text-2xl font-bold text-purple-600">
+                    <p class="text-2xl font-bold text-green-600">
                         ${getBestCEFR(results.reading.cefrLevel, results.listening.cefrLevel)}
                     </p>
                 </div>
@@ -884,7 +893,3 @@ function resetSystem() {
 }
 
 loadConfig();
-</script>
-
-</body>
-</html>
