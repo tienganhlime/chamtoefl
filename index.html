@@ -334,17 +334,20 @@ let capturedImageData = null;
 let stream = null;
 
 function loadConfig() {
-    if (FIXED_CONFIG.apiKey !== 'sk-ant-api03-PASTE_YOUR_API_KEY_HERE' && 
-        FIXED_CONFIG.sheetsUrl !== 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec') {
+    // Kiểm tra nếu đã có config cố định (API key có độ dài > 20 ký tự là hợp lệ)
+    if (FIXED_CONFIG.apiKey && FIXED_CONFIG.apiKey.length > 20 && 
+        FIXED_CONFIG.sheetsUrl && FIXED_CONFIG.sheetsUrl.includes('script.google.com')) {
         config = {
             apiKey: FIXED_CONFIG.apiKey,
             sheetsUrl: FIXED_CONFIG.sheetsUrl
         };
+        // Bỏ qua màn hình setup, vào thẳng màn hình nhập thông tin
         document.getElementById('setupScreen').classList.add('hidden');
         document.getElementById('infoScreen').classList.remove('hidden');
         return;
     }
     
+    // Nếu chưa có config cố định, dùng localStorage
     const saved = localStorage.getItem('toefl_config');
     if (saved) {
         config = JSON.parse(saved);
